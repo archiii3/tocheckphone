@@ -4,11 +4,6 @@ FROM python:3.11-slim-bullseye
 # Set the working directory in the container
 WORKDIR /MoneyPrinterTurbo
 
-# 设置/MoneyPrinterTurbo目录权限为777
-RUN chmod 777 /MoneyPrinterTurbo
-
-ENV PYTHONPATH="/MoneyPrinterTurbo"
-
 # Install system dependencies with domestic mirrors first for stability
 RUN echo "deb http://mirrors.aliyun.com/debian bullseye main" > /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/debian-security bullseye-security main" >> /etc/apt/sources.list && \
@@ -27,9 +22,12 @@ RUN echo "deb http://mirrors.aliyun.com/debian bullseye main" > /etc/apt/sources
                 ( \
                     apt-get update && apt-get install -y --no-install-recommends \
                         git \
-                        imagemagick \
-                        ffmpeg || \
-                    ( \
+                       
+# 设置/MoneyPrinterTurbo目录权限为777
+RUN chmod 777 /MoneyPrinterTurbo
+
+ENV PYTHONPATH="/MoneyPrinterTurbo"
+
                         echo "Tsinghua mirror failed, switching to default Debian mirror"; \
                         sed -i 's/mirrors.tuna.tsinghua.edu.cn/deb.debian.org/g' /etc/apt/sources.list && \
                         sed -i 's/mirrors.tuna.tsinghua.edu.cn\/debian-security/security.debian.org/g' /etc/apt/sources.list; \
