@@ -1,0 +1,129 @@
+"""
+Veyro
+Smart File Organizer
+--------------------
+Automatically organizes files into folders based on their extensions.
+
+Usage:
+    python veyro.py
+"""
+
+from pathlib import Path
+import shutil
+
+# File categories
+CATEGORIES = {
+    "Images": {
+        ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico"
+    },
+    "Videos": {
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".webm"
+    },
+    "Audio": {
+        ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a"
+    },
+    "Documents": {
+        ".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt"
+    },
+    "Spreadsheets": {
+        ".xls", ".xlsx", ".csv", ".ods"
+    },
+    "Presentations": {
+        ".ppt", ".pptx", ".odp"
+    },
+    "Archives": {
+        ".zip", ".rar", ".7z", ".tar", ".gz"
+    },
+    "Code": {
+        ".py", ".js", ".ts", ".java", ".cpp", ".c", ".h",
+        ".html", ".css", ".json", ".xml", ".sql", ".go", ".rs"
+    },
+}
+
+
+def get_category(extension):
+    """Return the category for a file extension."""
+    extension = extension.lower()
+
+    for category, extensions in CATEGORIES.items():
+        if extension in extensions:
+            return category
+
+    return "Other"
+
+
+def unique_destination(destination):
+    """Prevent overwriting existing files."""
+    if not destination.exists():
+        return destination
+
+    counter = 1
+    while True:
+        new_name = f"{destination.stem}_{counter}{destination.suffix}"
+        new_destination = destination.parent / new_name
+
+        if not new_destination.exists():
+            return new_destination
+
+        counter += 1
+
+
+def organize(folder):
+    """Organize files inside the selected folder."""
+    folder = Path(folder)
+
+    if not folder.exists() or not folder.is_dir():
+        print("Error: Folder does not exist.")
+        return
+
+    moved = 0
+
+    for item in folder.iterdir():
+
+        # Ignore directories
+        if not item.is_file():
+            continue
+
+        # Ignore the script itself
+        if item.name == Path(__file__).name:
+            continue
+
+        category = get_category(item.suffix)
+        target_folder = folder / category
+
+        target_folder.mkdir(exist_ok=True)
+
+        destination = unique_destination(target_folder / item.name)
+
+        try:
+            shutil.move(str(item), str(destination))
+            print(f"[+] {item.name} -> {category}/")
+            moved += 1
+        except OSError as error:
+            print(f"[!] Could not move {item.name}: {error}")
+
+    print()
+    print(f"Done. {moved} file(s) organized.")
+
+
+def main():
+    print("=" * 40)
+    print("             VEYRO")
+    print("        Smart File Organizer")
+    print("=" * 40)
+    print()
+
+    path = input("Enter folder path: ").strip()
+
+    # Remove surrounding quotes from copied paths
+    path = path.strip('"').strip("'")
+
+    if not path:
+        print("No folder selected.")
+        return
+
+    organize(path)
+
+
+if __name__ == "__main__":
+    main()
